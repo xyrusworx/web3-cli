@@ -1,5 +1,6 @@
 // This is the entry point of the "web3" command line application
 
+import dotenv from "dotenv";
 import process from "process";
 import chalk from "chalk";
 import fs from "fs";
@@ -23,6 +24,8 @@ function logo(output: CommandOutput) {
 
 async function main(args: string[]) {
 
+    dotenv.config();
+
     let parsedArgs: AppArguments = undefined;
     let output: CommandOutput = console;
 
@@ -33,7 +36,8 @@ async function main(args: string[]) {
         if (!parsedArgs.noLogo && !parsedArgs.quiet) {
             logo(output);
         }
-    } catch (e) {
+    }
+    catch (e) {
         logo(output);
 
         output.error("Error:", e?.message || e);
@@ -45,7 +49,6 @@ async function main(args: string[]) {
 
 
     let command: Command;
-
     try {
         command = createCommand(parsedArgs.command, output);
     }
