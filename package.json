@@ -1,0 +1,57 @@
+{
+  "name": "@xyrusworx/web3-cli",
+  "version": "0.6.0",
+  "description": "A command line tool which offers low-level EVM interaction for Web3 developers",
+  "keywords": [
+    "web3",
+    "library"
+  ],
+  "scripts": {
+    "start": "npx ts-node src/main.ts",
+    "build": "tsc -p tsconfig.lib.prod.json",
+    "bundle": "copyfiles --flat package.json LICENSE dist/",
+    "pack": "npm run build && npm run bundle"
+  },
+  "bin": {
+    "web3": "./main.js"
+  },
+  "main": "main.js",
+  "homepage": "https://github.com/xyrusworx/web3-cli",
+  "license": "GPL-3.0-or-later",
+  "author": {
+    "name": "Xyrus",
+    "url": "https://github.com/xyrus02"
+  },
+  "contributors": [
+    {
+      "name": "Xyrus",
+      "url": "https://github.com/xyrus02"
+    }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/xyrusworx/web3.git"
+  },
+  "peerDependencies": {
+    "ethers": "^5.6.4",
+    "web3": "^1.7.1"
+  },
+  "dependencies": {
+    "@xyrusworx/web3": "^0.6.3",
+    "chalk": "^4.1.2"
+  },
+  "devDependencies": {
+    "@types/node": "^14.14.9",
+    "copyfiles": "^2.4.1",
+    "ts-node": "^10.9.1",
+    "typescript": "^4.9.4"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "release": {
+    "branches": [
+      "main"
+    ]
+  }
+}
