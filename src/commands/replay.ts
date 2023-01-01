@@ -1,5 +1,5 @@
 import {Command, CommandOutput} from "../cmd";
-import simulator from "@xyrusworx/evm-simulator";
+import evm from "@xyrusworx/evm-simulator";
 
 // noinspection JSUnusedGlobalSymbols
 export default class ReplayCommand implements Command {
@@ -48,7 +48,8 @@ export default class ReplayCommand implements Command {
             return 1;
         }
 
-        await simulator.replayTransaction(rpc, txHash);
+        (<any>evm.simulator).console = this.out;
+        await evm.simulator.replayTransaction(rpc, txHash);
         return 0;
     }
 

@@ -1,7 +1,7 @@
 import chalk from "chalk";
 import {CommandOutput} from "./cmd";
 
-export class WrappedConsoleLog implements CommandOutput{
+export class WrappedConsoleLog implements CommandOutput {
 
     constructor(
         private _quiet: boolean,

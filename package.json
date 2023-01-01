@@ -37,7 +37,7 @@
     "web3": "^1.7.1"
   },
   "dependencies": {
-    "@xyrusworx/evm-simulator": "^0.2.2",
+    "@xyrusworx/evm-simulator": "^0.3.0",
     "@xyrusworx/web3": "^0.6.3",
     "chalk": "^4.1.2",
     "dotenv": "^16.0.3"
