@@ -24,8 +24,10 @@ export default class SimulateCommand extends SimulatorCommand {
         if (exit !== undefined)
             return exit || 0;
 
-        let from: string, value: string, block: number;
-        let fromStdin: boolean = false;
+        let from: string = process.env.WEB3_ACCOUNT,
+            value: string,
+            block: number,
+            fromStdin: boolean = false;
 
         for(let i = 0; i < args.length; i++) {
             const arg = args[i];
@@ -97,7 +99,7 @@ export default class SimulateCommand extends SimulatorCommand {
         const txResult = await simulator.simulateTransaction({
             from, to, data, block,
             rpcUrl: model.rpcUrl,
-            value: value !== undefined ? BigNumber.from(value).toNumber() : undefined
+            value: value !== undefined ? value.startsWith("0x") ? BigNumber.from(value).toNumber() : +value : undefined
         });
 
         return this.processResult(model, txResult);
@@ -117,6 +119,7 @@ export default class SimulateCommand extends SimulatorCommand {
         console.log("  --value / -v <number>  Uses the given value as the transaction value.");
         console.log("                         Must be in native currency. Hex values are supported.")
         console.log("  --from / -u <address>  Sets the sender address for the transaction.");
+        console.log("                         You can also set this using the environment variable WEB3_ACCOUNT.")
         console.log("  --stdin / -i           If set, the ABI-encoded data is read from STDIN.");
         console.log("                         This is useful in combination with the \"encode\" command.")
         console.log("");
