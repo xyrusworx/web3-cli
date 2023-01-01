@@ -13,7 +13,7 @@
     "pack": "npm run build && npm run bundle"
   },
   "bin": {
-    "web3": "./main.js"
+    "web3": "node ./main.js"
   },
   "main": "main.js",
   "homepage": "https://github.com/xyrusworx/web3-cli",
