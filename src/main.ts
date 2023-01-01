@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 // This is the entry point of the "web3" command line application
 
 import dotenv from "dotenv";
