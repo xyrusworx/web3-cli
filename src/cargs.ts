@@ -41,6 +41,7 @@ export class AppArguments {
                 }
 
             cmd.push(this._args[i]);
+            stopParsing = true;
         }
 
         if (cmd.length <= 0) {

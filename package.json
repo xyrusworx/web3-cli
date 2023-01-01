@@ -33,14 +33,15 @@
     "url": "https://github.com/xyrusworx/web3.git"
   },
   "peerDependencies": {
-    "ethers": "^5.6.4",
-    "web3": "^1.7.1"
+    "ethers": "^5.6.4"
   },
   "dependencies": {
-    "@xyrusworx/evm-simulator": "^0.3.0",
-    "@xyrusworx/web3": "^0.6.3",
+    "@xyrusworx/evm-simulator": "^0.4.1",
+    "@xyrusworx/web3": "^0.6.4",
     "chalk": "^4.1.2",
-    "dotenv": "^16.0.3"
+    "dotenv": "^16.0.3",
+    "ethers": "^5.6.4",
+    "web3": "^1.7.1"
   },
   "devDependencies": {
     "@types/node": "^14.14.9",

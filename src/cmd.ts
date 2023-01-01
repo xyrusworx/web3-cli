@@ -30,6 +30,6 @@ export function createCommand(name: string, output: CommandOutput) {
         return new cmdClass(output);
     }
     catch (e) {
-        throw `Invalid command: ${name}`;
+        throw `Error initializing command ${name}: ${e?.message || e}`;
     }
 }
