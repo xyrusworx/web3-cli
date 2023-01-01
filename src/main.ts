@@ -4,6 +4,7 @@
 import dotenv from "dotenv";
 import process from "process";
 import chalk from "chalk";
+import path from "path";
 import fs from "fs";
 
 import {AppArguments} from "./cargs";
@@ -11,9 +12,10 @@ import {WrappedConsoleLog} from "./console";
 import {Command, CommandOutput, createCommand} from "./cmd";
 
 function logo(output: CommandOutput) {
+
     const packageManifest =
-        fs.existsSync("./package.json") ? JSON.parse(fs.readFileSync("./package.json").toString()) :
-        fs.existsSync("../package.json") ? JSON.parse(fs.readFileSync("../package.json").toString()) :
+        fs.existsSync(path.join(__dirname, "package.json")) ? JSON.parse(fs.readFileSync(path.join(__dirname, "package.json")).toString()) :
+        fs.existsSync(path.join(__dirname, "..", "package.json")) ? JSON.parse(fs.readFileSync(path.join(__dirname, "..", "package.json")).toString()) :
         undefined;
 
     const version = packageManifest?.version || "0.0.0";
