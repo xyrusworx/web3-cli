@@ -62,8 +62,8 @@ export function evmSimulatorHelp(output: CommandOutput) {
     output.log("  --network / -n <name>  Uses the given network. The default network is Ethereum mainnet.");
     output.log("                         A list of supported networks is below. Use --rpc / -r for other networks.")
     output.log("  --rpc / -r <url>       Sets the URL to the JSON-RPC endpoint. Must be an archive node.");
-    output.log("  --output / -o <file>   Writes a structured JSON output to the specified file.");
     output.log("                         Can also be set using the environment variable WEB3_RPC");
+    output.log("  --output / -o <file>   Writes a structured JSON output to the specified file.");
 }
 
 export function evmNetworkHelp(output: CommandOutput) {

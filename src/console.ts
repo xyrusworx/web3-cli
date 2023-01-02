@@ -63,3 +63,13 @@ export class WrappedConsoleLog implements CommandOutput {
         func.apply(this, message.map(x => typeof x === "string" ? color(x) : x));
     }
 }
+
+export async function readAllStdin(stream) {
+    return await new Promise<string>(resolve => {
+        const chunks = [];
+        stream.on("data", chunk => chunks.push(chunk));
+        stream.on("end", () => {
+            resolve(Buffer.concat(chunks).toString('utf8').trim());
+        });
+    });
+}
