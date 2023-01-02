@@ -1,6 +1,6 @@
 {
   "name": "@xyrusworx/web3-cli",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "A command line tool which offers low-level EVM interaction for Web3 developers",
   "keywords": [
     "web3",
