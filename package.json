@@ -9,7 +9,7 @@
   "scripts": {
     "start": "npx ts-node src/main.ts",
     "build": "tsc -p tsconfig.lib.prod.json",
-    "bundle": "copyfiles --flat package.json LICENSE dist/",
+    "bundle": "copyfiles --flat package.json LICENSE README.md dist/",
     "pack": "npm run build && npm run bundle"
   },
   "bin": {
