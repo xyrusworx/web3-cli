@@ -4,7 +4,9 @@
   "description": "A command line tool which offers low-level EVM interaction for Web3 developers",
   "keywords": [
     "web3",
-    "library"
+    "cli",
+    "utility",
+    "development"
   ],
   "scripts": {
     "start": "npx ts-node src/main.ts",
