@@ -46,13 +46,23 @@ export default class DecodeCommand implements Command {
             return 1;
         }
 
-        const signature = args[args.length - 1];
+        const signature = fromStdin
+            ?  args[args.length - 1]
+            :  args[args.length - 2];
+
         if (!signature) {
             this.output.error("Missing signature");
             return 1;
         }
 
-        const elements = decodeReturnData(signature, data);
+        let elements;
+        try {
+            elements = decodeReturnData(signature, data)
+        }
+        catch (e) {
+            this.output.error("Failed to decode", data, "using", signature, "- calldata or signature are invalid. This can happen if the call ran into an exception.");
+            return 1;
+        }
 
         let i = 0;
         let types = signature.split(",").map(x => x.trim());
@@ -113,7 +123,7 @@ export default class DecodeCommand implements Command {
 }
 
 function decodeReturnData(signature: string, data: string) {
-    return new ethers.utils.Interface( [`function _() returns (${signature})`])
-        .decodeFunctionResult("_", data)
+    return new ethers.utils.Interface( [`function anonymous() returns (${signature})`])
+        .decodeFunctionResult("anonymous", data)
         .slice();
 }
