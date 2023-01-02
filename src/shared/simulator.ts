@@ -2,7 +2,7 @@ import {CommonParameters, ParseResult} from "./common";
 import {Command, CommandOutput} from "../cmd";
 import {EthereumNetwork, EthereumNetworkDescription, IEthereumNetworkDescription} from "@xyrusworx/web3";
 import chalk from "chalk";
-import {createSimulator, Simulator, TransactionResult} from "@xyrusworx/evm-simulator";
+import {CallResult, createSimulator, Simulator, TransactionResult} from "@xyrusworx/evm-simulator";
 import fs from "fs";
 
 export interface EvmSimulatorParameters extends CommonParameters {
@@ -92,14 +92,15 @@ export abstract class SimulatorCommand implements Command {
         return simulator;
     }
 
-    protected processResult(model: EvmSimulatorParameters, txResult: TransactionResult): number {
+    protected processResult(model: EvmSimulatorParameters, result: TransactionResult | CallResult): number {
         const console = this.output;
 
-        if (txResult.status) {
-            if (txResult.result.data.logs.length > 0) {
+        if (result.status) {
+            const logs = (<any>result).data?.logs || []
+            if (logs.length > 0) {
                 console.log("Event log:")
             }
-            for (const event of txResult.result.data.logs.sort((a, b) => a.index - b.index)) {
+            for (const event of logs.sort((a, b) => a.index - b.index)) {
                 console.log("  Event", event.index + 1);
                 console.log("    Topics: ")
                 for (const topic of event.topics) console.log("      " + topic);
@@ -110,11 +111,11 @@ export abstract class SimulatorCommand implements Command {
         }
 
         if (!!model.outputFile) {
-            fs.writeFileSync(model.outputFile, JSON.stringify(txResult, null, "  "));
+            fs.writeFileSync(model.outputFile, JSON.stringify(result, null, "  "));
             console.log("Structured output written to:", model.outputFile);
         }
 
-        return txResult.status ? 0 : 100;
+        return result.status ? 0 : 100;
     }
 
 }

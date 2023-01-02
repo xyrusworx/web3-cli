@@ -7,10 +7,9 @@ import {
     SimulatorCommand
 } from "../shared/simulator";
 import {commonHelp, parseArguments} from "../shared/common";
-import {BigNumber} from "ethers";
 
 // noinspection JSUnusedGlobalSymbols
-export default class SimulateCommand extends SimulatorCommand {
+export default class QueryCommand extends SimulatorCommand {
     constructor(out: CommandOutput) {super(out)}
 
     public async run(args: string[]): Promise<number> {
@@ -24,9 +23,7 @@ export default class SimulateCommand extends SimulatorCommand {
         if (exit !== undefined)
             return exit || 0;
 
-        let from: string = process.env.WEB3_ACCOUNT,
-            value: string,
-            block: number,
+        let block: number,
             fromStdin: boolean = false;
 
         for(let i = 0; i < args.length; i++) {
@@ -35,24 +32,6 @@ export default class SimulateCommand extends SimulatorCommand {
                 case "-i":
                 case "--stdin":
                     fromStdin = true;
-                    break;
-
-                case "-u":
-                case "--from":
-                    from = args[++i];
-                    if (!from.match(/^(0[xX])?[a-fA-F0-9]{40}$/)) {
-                        console.error("Invalid sender address:", from);
-                        return 1;
-                    }
-                    break;
-
-                case "-v":
-                case "--value":
-                    value = args[++i];
-                    if (!value.match(/^(0[xX][a-fA-F0-9]{40})|(\d+)$/)) {
-                        console.error("Invalid transaction value:", value);
-                        return 1;
-                    }
                     break;
 
                 case "-b":
@@ -92,18 +71,10 @@ export default class SimulateCommand extends SimulatorCommand {
             return 1;
         }
 
-        if (!from) {
-            from = "0x0000000000000000000000000000000000000000";
-        }
-
         const simulator = this.createSimulator();
-        const txResult = await simulator.simulateTransaction({
-            from, to, data, block,
-            rpcUrl: model.rpcUrl,
-            value: value !== undefined ? value.startsWith("0x") ? BigNumber.from(value).toNumber() : +value : undefined
-        });
+        const result = await simulator.call({ to, data, block, rpcUrl: model.rpcUrl });
 
-        return this.processResult(model, txResult);
+        return this.processResult(model, result);
     }
 
     private usage() {
@@ -117,15 +88,11 @@ export default class SimulateCommand extends SimulatorCommand {
 
         console.log("  --block / -b <number>  Sets the block height for the simulation to the given number.");
         console.log("                         If unspecified, the latest block is used.")
-        console.log("  --value / -v <number>  Uses the given value as the transaction value.");
-        console.log("                         Must be in native currency. Hex values are supported.")
-        console.log("  --from / -u <address>  Sets the sender address for the transaction.");
-        console.log("                         You can also set this using the environment variable WEB3_ACCOUNT.")
         console.log("  --stdin / -i           If set, the ABI-encoded data is read from STDIN.");
         console.log("                         This is useful in combination with the \"encode\" command.")
         console.log("");
         console.log("The data must be ABI-encoded data in hex representation. Unless --stdin / -i is set, it");
-        console.log("is mandatory to specify the ABI-encoded data. If you want to send empty data, specify \"0x\".")
+        console.log("is mandatory to specify the ABI-encoded data.")
 
         console.log("");
         evmNetworkHelp(console);
