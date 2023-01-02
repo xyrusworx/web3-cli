@@ -9,27 +9,24 @@ export class WrappedConsoleLog implements CommandOutput {
     }
 
     public debug(...args: any[]): void {
-        if (!this._verbose || this._quiet) return;
+        if (!this._verbose) return;
         this.write([...args], "debug");
     }
     public info(...args: any[]): void {
-        if (this._quiet) return;
         this.write([...args], "info");
     }
     public warn(...args: any[]): void {
-        if (this._quiet) return;
         this.write([...args], "warn");
     }
     public error(...args: any[]): void {
-        if (this._quiet) return;
         this.write([...args], "error");
     }
     public log(...args: any | any[]): void {
-        if (this._quiet) return;
         this.write([...args], "info");
     }
 
     private write(message: any | any[], status: string): void {
+
         if (!status) status = "info";
         if (!Array.isArray(message)) {
             message = [message];
@@ -54,6 +51,13 @@ export class WrappedConsoleLog implements CommandOutput {
                 func = console.log;
                 color = chalk.reset;
                 break;
+        }
+
+        if (this._quiet) {
+            if (status === "error") {
+                process.stderr.write(message.join(" "), "utf-8");
+            }
+            return;
         }
 
         func.apply(this, message.map(x => typeof x === "string" ? color(x) : x));

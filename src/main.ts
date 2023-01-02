@@ -26,7 +26,6 @@ function logo(output: CommandOutput) {
 }
 
 async function main(args: string[]) {
-
     dotenv.config();
 
     let parsedArgs: AppArguments = undefined;
@@ -53,7 +52,7 @@ async function main(args: string[]) {
 
     let command: Command;
     try {
-        command = createCommand(parsedArgs.command, output);
+        command = createCommand(parsedArgs, output);
     }
     catch (e) {
         output.error(e?.message || e);

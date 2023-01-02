@@ -1,10 +1,10 @@
-import {Command, CommandOutput} from "../cmd";
+import {Command, CommandInput, CommandOutput} from "../cmd";
 import {commonHelp, CommonParameters, parseArguments} from "../shared/common";
 import {encodeCallData} from "@xyrusworx/evm-simulator/implementation/helpers";
 
 // noinspection JSUnusedGlobalSymbols
 export default class EncodeCommand implements Command {
-    constructor(private output: CommandOutput) {}
+    constructor(private input: CommandInput, private output: CommandOutput) {}
 
     public async run(args: string[]): Promise<number> {
         const { exit, model } = parseArguments<CommonParameters>(this.output, args);

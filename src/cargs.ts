@@ -1,7 +1,7 @@
 import process from "process";
-import {CommandOutput} from "./cmd";
+import {CommandInput, CommandOutput} from "./cmd";
 
-export class AppArguments {
+export class AppArguments implements CommandInput {
 
     constructor(private _args: string[]) {
         let stopParsing = false;

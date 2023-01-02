@@ -1,4 +1,4 @@
-import {CommandOutput} from "../cmd";
+import {CommandInput, CommandOutput} from "../cmd";
 import {
     evmNetworkHelp,
     evmSimulatorHelp,
@@ -11,7 +11,7 @@ import {BigNumber} from "ethers";
 
 // noinspection JSUnusedGlobalSymbols
 export default class SimulateCommand extends SimulatorCommand {
-    constructor(out: CommandOutput) {super(out)}
+    constructor(inp: CommandInput, out: CommandOutput) {super(inp, out)}
 
     public async run(args: string[]): Promise<number> {
         const console = this.output;
@@ -103,7 +103,7 @@ export default class SimulateCommand extends SimulatorCommand {
             value: value !== undefined ? value.startsWith("0x") ? BigNumber.from(value).toNumber() : +value : undefined
         });
 
-        return this.processResult(model, txResult);
+        return this.processResult(this.input, model, txResult);
     }
 
     private usage() {

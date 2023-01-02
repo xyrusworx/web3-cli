@@ -1,4 +1,4 @@
-import {CommandOutput} from "../cmd";
+import {CommandInput, CommandOutput} from "../cmd";
 import {
     evmNetworkHelp,
     evmSimulatorHelp,
@@ -10,7 +10,7 @@ import {commonHelp, parseArguments} from "../shared/common";
 
 // noinspection JSUnusedGlobalSymbols
 export default class QueryCommand extends SimulatorCommand {
-    constructor(out: CommandOutput) {super(out)}
+    constructor(inp: CommandInput, out: CommandOutput) {super(inp, out)}
 
     public async run(args: string[]): Promise<number> {
         const console = this.output;
@@ -74,13 +74,13 @@ export default class QueryCommand extends SimulatorCommand {
         const simulator = this.createSimulator();
         const result = await simulator.call({ to, data, block, rpcUrl: model.rpcUrl });
 
-        return this.processResult(model, result);
+        return this.processResult(this.input, model, result);
     }
 
     private usage() {
         const console = this.output;
 
-        console.log("Usage: web3 simulate [options] <target address> [<data>]");
+        console.log("Usage: web3 call [options] <target address> [<data>]");
         console.log("Available options:");
 
         commonHelp(console);

@@ -1,4 +1,4 @@
-import {CommandOutput} from "../cmd";
+import {CommandInput, CommandOutput} from "../cmd";
 import {
     evmNetworkHelp,
     evmSimulatorHelp,
@@ -10,7 +10,7 @@ import {commonHelp, parseArguments} from "../shared/common";
 
 // noinspection JSUnusedGlobalSymbols
 export default class ReplayCommand extends SimulatorCommand {
-    constructor(out: CommandOutput) {super(out)}
+    constructor(inp: CommandInput, out: CommandOutput) {super(inp, out)}
 
     public async run(args: string[]): Promise<number> {
         const console = this.output;
@@ -32,7 +32,7 @@ export default class ReplayCommand extends SimulatorCommand {
         const simulator = this.createSimulator();
         const txResult = await simulator.replayTransaction(model.rpcUrl, txHash);
 
-        return this.processResult(model, txResult);
+        return this.processResult(this.input, model, txResult);
     }
 
     private usage() {

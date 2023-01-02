@@ -1,5 +1,5 @@
 import {CommonParameters, ParseResult} from "./common";
-import {Command, CommandOutput} from "../cmd";
+import {Command, CommandInput, CommandOutput} from "../cmd";
 import {EthereumNetwork, EthereumNetworkDescription, IEthereumNetworkDescription} from "@xyrusworx/web3";
 import chalk from "chalk";
 import {CallResult, createSimulator, Simulator, TransactionResult} from "@xyrusworx/evm-simulator";
@@ -83,7 +83,9 @@ export function evmNetworkHelp(output: CommandOutput) {
 
 export abstract class SimulatorCommand implements Command {
 
-    protected constructor(protected output: CommandOutput) {}
+    protected constructor(
+        protected input: CommandInput,
+        protected output: CommandOutput) {}
     abstract run(args: string[]): Promise<number>;
 
     protected createSimulator(): Simulator {
@@ -92,9 +94,15 @@ export abstract class SimulatorCommand implements Command {
         return simulator;
     }
 
-    protected processResult(model: EvmSimulatorParameters, result: TransactionResult | CallResult): number {
-        const console = this.output;
+    protected processResult(input: CommandInput, model: EvmSimulatorParameters, result: TransactionResult | CallResult): number {
 
+        if (input.quiet) {
+            if (result.status && typeof result.result?.data === "string")
+                process.stdout.write(`${result.result.data}\n`, "utf-8");
+            return result.status ? 0 : 100;
+        }
+
+        const console = this.output;
         if (result.status) {
             const logs = (<any>result).data?.logs || []
             if (logs.length > 0) {
