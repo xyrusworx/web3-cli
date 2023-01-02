@@ -2,31 +2,15 @@
 
 This CLI tool offers options to interact with EVM-based blockchains.
 
-## How to build
+## Installing
 
-Just run:
-
-```bash
-    npm install
-    npm run pack
-```
-
-This will create a `dist/` folder with the deployable package. It can be released with `cd dist/ && npm publish`
-
-## How to run
-
-After installing the tool using
+Use the following command with Node 16+ installed:
 
 ```bash
     npm install -g @xyrusworx/web3-cli
 ```
 
-You can use `web3 -h` to see the command line options. To see the help page for a specific command, 
-you can use `web3 <command> -h`.
-
-## Command line arguments
-
-### General information
+## Usage
 
 The program is called using `web3`. Each call is structured the following way:
 
@@ -109,3 +93,14 @@ web3 decode -i uint256
 You can pipe the output of `call` to `decode` to extract readable / processable results instead of a
 raw hex string. The last parameter is a comma-separated list of data types, which are passed to the 
 decoder. This is arbitrary, meaning you can decode any hex data interpreting them as any Solidity type.
+
+## How to build
+
+Just run:
+
+```bash
+    npm install
+    npm run pack
+```
+
+This will create a `dist/` folder with the deployable package. It can be released with `cd dist/ && npm publish`
