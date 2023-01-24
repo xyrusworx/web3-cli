@@ -165,12 +165,12 @@ export abstract class CompilerCommand implements Command {
         return wrp(mod);
     }
 
-    protected async compile(compiler: { compile: (string) => any }, input: Object) {
+    protected async compile(compiler: { compile: (string) => any }, input: any) {
 
         const console = this.output;
         console.log('Compiling...');
 
-        const solcOutput = await compiler.compile(JSON.stringify(input));
+        const solcOutput = JSON.parse(await compiler.compile(JSON.stringify(input)));
 
         await new Promise<void>((res,rej) => {
             if (!!solcOutput?.errors) {
@@ -188,7 +188,7 @@ export abstract class CompilerCommand implements Command {
                                 fn = console.warn;
                                 break;
                         }
-                        if (!!fn) fn.call(console, err.formattedMessage || err.message || err);
+                        if (!!fn) fn.call(console, x.formattedMessage || x.message || x);
                         if (!!q) rej("Compilation failed.");
                     });
                 }

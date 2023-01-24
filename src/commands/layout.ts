@@ -43,10 +43,22 @@ export default class LayoutCommand extends CompilerCommand {
             : args[args.length - 1];
 
         let solcInput ;try {
-            solcInput = JSON.parse(data)
+            try {
+                solcInput = JSON.parse(data);
+            }
+            catch {
+                solcInput = {
+                    language: "Solidity",
+                    sources: {
+                        "input.sol": {
+                            content: data
+                        }
+                    }
+                }
+            }
         }
         catch(e) {
-            this.output.error("Invalid solidity input JSON.");
+            this.output.error("Failed to process input. Please supply wither valid standard Solidity input JSON or a Solidity source file.");
             return 1;
         }
 
@@ -59,7 +71,7 @@ export default class LayoutCommand extends CompilerCommand {
             solcInput.settings.outputSelection['*']['*'].push('storageLayout')
 
             const compiler = await this.createCompiler(model.version);
-            const {contracts} = JSON.parse(await this.compile(compiler, solcInput));
+            const {contracts} = await this.compile(compiler, solcInput);
 
             let result = {};
 
@@ -118,7 +130,7 @@ export default class LayoutCommand extends CompilerCommand {
     private async usage() {
         const console = this.output;
 
-        console.log("Usage: web3 layout [options] <sol-input-json>");
+        console.log("Usage: web3 layout [options] <sol-input-json | sol-source-code>");
         console.log("Available options:");
 
         commonHelp(console);
