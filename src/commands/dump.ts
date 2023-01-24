@@ -24,7 +24,7 @@ export default class DumpCommand extends SimulatorCommand {
         if (exit !== undefined)
             return exit || 0;
 
-        let block: number, slot: number = -1;
+        let block: number, slot: number = -1, start = 0, count: number = -1;
 
         for(let i = 0; i < args.length; i++) {
             const arg = args[i];
@@ -33,6 +33,22 @@ export default class DumpCommand extends SimulatorCommand {
                     slot = +(args[++i]);
                     if (Number.isNaN(slot) || slot < 0) {
                         console.error("Invalid slot:", args[i]);
+                        return 1;
+                    }
+                    break;
+
+                case "--start":
+                    start = +(args[++i]);
+                    if (Number.isNaN(start) || start < 0) {
+                        console.error("Invalid start index:", args[i]);
+                        return 1;
+                    }
+                    break;
+
+                case "--count":
+                    count = +(args[++i]);
+                    if (Number.isNaN(count) || count <= 0) {
+                        console.error("Invalid count:", args[i]);
                         return 1;
                     }
                     break;
@@ -77,6 +93,7 @@ export default class DumpCommand extends SimulatorCommand {
             }
 
             const dumpSlotData = (currentSlot, index) => {
+                if (currentSlot == "0x") currentSlot = "0x0000000000000000000000000000000000000000000000000000000000000000"
                 const slotBuffer = new Uint8Array(32);
                 currentSlot = currentSlot.replace(/^0[xX]/, '');
                 for (let i = 0; i < 64; i += 2) {
@@ -87,21 +104,25 @@ export default class DumpCommand extends SimulatorCommand {
 
                 const r = new TextDecoder().decode(slotBuffer);
 
-                hex.push((((index - 1) * 16).toString(16).padStart(8, '0')) + " | " + currentSlot.substring(0,32).replace(/([a-fA-F0-9]{2})/g, '$1 ').toUpperCase());
-                hex.push((((index - 0) * 16).toString(16).padStart(8, '0')) + " | " + currentSlot.substring(32).replace(/([a-fA-F0-9]{2})/g, '$1 ').toUpperCase());
+                hex.push(((index * 32).toString(16).padStart(8, '0')) + " | " + currentSlot.substring(0,32).replace(/([a-fA-F0-9]{2})/g, '$1 ').toUpperCase());
+                hex.push(((index * 32 + 16).toString(16).padStart(8, '0')) + " | " + currentSlot.substring(32).replace(/([a-fA-F0-9]{2})/g, '$1 ').toUpperCase());
 
-                raw.push(r.substring(0, 16).replace(/[\x00-\x19]/, '.'));
-                raw.push(r.substring(16).replace(/[\x00-\x19]/, '.'));
+                raw.push(r.substring(0, 16).replace(/[\x00-\x19]/g, '.'));
+                raw.push(r.substring(16).replace(/[\x00-\x19]/g, '.'));
             }
 
             if (slot < 0) {
-                const zero = "0x";
-                let index = 0;
-
-                let currentSlot = await getSlot(index++);
-                while (zero !== currentSlot) {
+                if (count > 0) for (let index = start; index < count + start; index++) {
+                    const currentSlot = await getSlot(index);
                     dumpSlotData(currentSlot, index)
-                    currentSlot = await getSlot(index++);
+                }
+                else {
+                    let index = start;
+                    let currentSlot = await getSlot(index++);
+                    while ("0x" !== currentSlot) {
+                        dumpSlotData(currentSlot, index - 1)
+                        currentSlot = await getSlot(index++);
+                    }
                 }
             }
             else {
@@ -145,6 +166,11 @@ export default class DumpCommand extends SimulatorCommand {
         console.log("  --block / -b <number>  Sets the block height for the simulation to the given number.");
         console.log("                         If unspecified, the latest block is used.")
         console.log("  --slot <number>        If set, data is dumped for only a specific storage slot.");
+        console.log("  --start <number>       If no specific slot is selected, this parameter sets the starting");
+        console.log("                         point of the storage scan. If unspecified, slot 0 is assumed.")
+        console.log("  --count <number>       Sets the amount of slots to scan, if no specific storage slot is");
+        console.log("                         selected. If unspecified, the scan is ended with the first slot")
+        console.log("                         which has no data.")
 
         console.log("");
         evmNetworkHelp(console);
