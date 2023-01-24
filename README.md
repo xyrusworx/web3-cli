@@ -25,13 +25,14 @@ behavior.
 
 ### Supported commands
 
-| Command    | Description                                                                                                                                                                                                                                       |
-|------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `call`     | Executes `eth_call` using given call data to a given contract address.                                                                                                                                                                            |
-| `simulate` | Sends a simulated transaction to a given contract address. The transaction is executed on an ephemeral fork of the chain, so no real transaction is sent. This also enables sending transactions as any address.                                  |
-| `replay`   | Similar to `simulate`, except that the parameters of the transaction including the block are derived from a given transaction hash, allowing to replay a past (real) transaction and obtain diagnostic information.                               |
-| `encode`   | Encodes a list of parameters using a given function signature, to obtain valid calldata, usable in `call` and `simulate`. The output of this command can be piped to the aforementioned commands, if the `-q ` option was passed.                 |
-| `decode`   | Decodes arbitrary hex data using a comma-separated list of Solidity data types (such as `uint256`, `address`, ...). If `call` was invoked with the `-q` option, its output can be piped to this command, which needs to receive the `-i` option. |
+| Command    | Description                                                                                                                                                                                                                                                      |
+|------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `call`     | Executes `eth_call` using given call data to a given contract address.                                                                                                                                                                                           |
+| `simulate` | Sends a simulated transaction to a given contract address. The transaction is executed on an ephemeral fork of the chain, so no real transaction is sent. This also enables sending transactions as any address.                                                 |
+| `replay`   | Similar to `simulate`, except that the parameters of the transaction including the block are derived from a given transaction hash, allowing to replay a past (real) transaction and obtain diagnostic information.                                              |
+| `encode`   | Encodes a list of parameters using a given function signature, to obtain valid calldata, usable in `call` and `simulate`. The output of this command can be piped to the aforementioned commands, if the `-q ` option was passed.                                |
+| `decode`   | Decodes arbitrary hex data using a comma-separated list of Solidity data types (such as `uint256`, `address`, ...). If `call` was invoked with the `-q` option, its output can be piped to this command, which needs to receive the `-i` option.                 |
+| `dump`     | Fetches the contents of the contract storage at a given address (and optionally a slot index) and writes it to the console and/or a binary output file. If no slot index is given, the contract storage is scanned until a completely empty slot is encountered. |
 
 ### Global options
 
