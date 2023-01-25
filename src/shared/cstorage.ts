@@ -1,6 +1,8 @@
 import Web3 from "web3";
 import {BigNumber, BytesLike, ethers} from "ethers";
 import {keccak256} from "ethers/lib/utils";
+import chalk from "chalk";
+import {CommandOutput} from "../cmd";
 
 export interface StorageVariable {
     slot: string | number,
@@ -38,6 +40,8 @@ export interface MappingType {
 }
 
 export type RawSlotData = string;
+
+export type ContractStorageState = {[key: string]: { variable: StorageVariable, value: any }};
 
 const defaultAbi = new Web3().eth.abi;
 
@@ -87,6 +91,120 @@ export async function decodeRawMappingStorageData(variable: MappingStorageVariab
     const itemVariable = { slot: storagePosition.toHexString(), type: variable.type.value, offset: 0 };
 
     return await decodeRawStorageData(itemVariable, fetchSlotCallback);
+}
+
+export async function compareStates(output: CommandOutput, beforeState: ContractStorageState, afterState: ContractStorageState): Promise<void> {
+
+    for (const key in beforeState) {
+        const before = beforeState[key];
+        const after = afterState[key];
+
+        if (!after) {
+            output.log(" ", chalk.red("[deleted]"), key);
+            continue;
+        }
+
+        if (Array.isArray(before.value)) {
+            const childBefore = {};
+            const childAfter = {};
+
+            const beforeVariable: StorageVariable = {
+                type: (<DynamicArrayType>before.variable.type).base,
+                offset: before.variable.offset,
+                slot: before.variable.slot,
+            };
+
+            const afterVariable: StorageVariable = {
+                type: (<DynamicArrayType>after.variable.type).base,
+                offset: after.variable.offset,
+                slot: after.variable.slot,
+            };
+
+            for (let i = 0; i < before.value.length; i++) childBefore[i] = { variable: { ...beforeVariable, name: before.variable.name + "[" + i + "]"}, value: before.value[i]};
+            for (let i = 0; i < after.value.length; i++) childAfter[i] = { variable: { ...afterVariable, name: after.variable.name + "[" + i + "]"}, value: after.value[i]};
+
+            await compareStates(output, childBefore, childAfter);
+        }
+        else if (!before.value._isMapping) {
+            if (before.value != after.value) {
+                output.log(" ", chalk.yellow("[changed]"), key + ":", before.value, "==>", after.value)
+            }
+        }
+    }
+
+    for (const key in afterState) {
+        const before = beforeState[key];
+        const after = afterState[key];
+
+        if (!!before) {
+            continue;
+        }
+
+        if (Array.isArray(after.value)) {
+            for (let i = 0; i < after.value.length; i++) {
+                output.log(" ", chalk.yellow("[added]"), after.variable.name + "[" + i + "]:", after.value)
+            }
+        }
+        else if (!after.value._isMapping) {
+            if (before.value != after.value) {
+                output.log(" ", chalk.yellow("[added]"), key + ":", after.value)
+            }
+        }
+    }
+}
+
+export class ContractStorage {
+
+    private readonly slotMap = new Map<string, string>();
+
+    constructor(private provider: ethers.providers.Web3Provider, private address: string) {
+        if (!ethers.utils.isAddress(address)) {
+            throw "Invalid address: " + address;
+        }
+    }
+
+    public output: CommandOutput = console;
+
+    public getStorageCacheAt(slot: number | string): string | undefined {
+        const slotBN: BigNumber = BigNumber.from(slot);
+        const slotCacheKey = slotBN.toString();
+
+        if (this.slotMap.has(slotCacheKey)) {
+            const cacheResult = this.slotMap.get(slotCacheKey);
+            this.output.debug("Slot", slotBN.toHexString(), "has been read from in-memory cache:", cacheResult);
+            return cacheResult;
+        }
+
+        return undefined;
+    }
+
+    public setProvider(provider: ethers.providers.Web3Provider) {
+        this.provider = provider;
+    }
+
+    public setStorageCacheAt(slot: number | string, value: string): void {
+        const slotBN: BigNumber = BigNumber.from(slot);
+        const slotCacheKey = slotBN.toString();
+
+        this.slotMap.set(slotCacheKey, value);
+    }
+
+    public async getStorageAt(slot: number | string): Promise<string> {
+        const slotBN: BigNumber = BigNumber.from(slot);
+        const slotCacheKey = slotBN.toString();
+
+        if (this.slotMap.has(slotCacheKey)) {
+            const cacheResult = this.slotMap.get(slotCacheKey);
+            this.output.debug("Slot", slotBN.toHexString(), "has been read from in-memory cache:", cacheResult);
+            return cacheResult;
+        }
+
+        const result = await this.provider.getStorageAt(this.address, slotBN.toHexString());
+        this.slotMap.set(slotCacheKey, result);
+
+        this.output.debug("Slot", slotBN.toHexString(), "has been read from provider:", result);
+        return result;
+    }
 }
 
 class Mapping {

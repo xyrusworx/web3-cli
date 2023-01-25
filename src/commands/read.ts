@@ -8,7 +8,7 @@ import {
     parseSimulatorArguments,
     SimulatorCommand
 } from "../shared/simulator";
-import {decodeRawStorageData, RawSlotData, StorageVariable} from "../shared/cstorage";
+import {ContractStorage, decodeRawStorageData, RawSlotData, StorageVariable} from "../shared/cstorage";
 import chalk from "chalk";
 import fs from "fs";
 import Web3 from "web3";
@@ -106,42 +106,43 @@ export default class ReadCommand extends SimulatorCommand {
 
             if (!!dumpFile) {
                 const callback = async provider => {
-                    const slotMap = new Map<string, string>();
+                    const storage = new ContractStorage(provider, address);
+                    storage.output = this.output;
                     const getSlot = async ix => {
-                        const bnix = BigNumber.from(ix);
-                        const key = bnix.toString();
 
-                        if (slotMap.has(key))
-                            return slotMap.get(key);
+                        const cacheResult = storage.getStorageCacheAt(ix);
+                        if (!!cacheResult) {
+                            return cacheResult;
+                        }
 
+                        const slotBN = BigNumber.from(ix);
                         const dumpLength = dumpFile.length;
-                        const requestedOffset = bnix.mul(32);
+                        const requestedOffset = slotBN.mul(32);
                         const requestedOffsetEnd = requestedOffset.add(32);
 
                         let result;
                         if (requestedOffset.gte(dumpLength)) {
                             if (!provider) {
                                 result = "0x";
-                                console.debug("Slot", key, "is out of bounds. Returning empty chunk.");
+                                console.debug("Slot", slotBN.toString(), "is out of bounds. Returning empty chunk.");
                             }
                             else {
-                                if (this.input.verbose) process.stdout.write(chalk.dim("Slot " + (key) + " is out of bounds. Fetching..."));
-                                result = await provider.getStorageAt(address, ix);
-                                if (this.input.verbose)  process.stdout.write(chalk.dim(result + "\n"));
+                                result = await storage.getStorageAt(ix);
                             }
                         }
                         else {
                             const slice = dumpFile.slice(requestedOffset.toNumber(), requestedOffsetEnd.toNumber());
                             result = Web3.utils.bytesToHex(slice);
                             if (requestedOffsetEnd.gte(dumpLength))
-                                console.debug("Slot", key, "is partially out of bounds. Returning", BigNumber.from(dumpLength).sub(requestedOffset).toString(), "bytes:", result);
+                                console.debug("Slot", slotBN.toString(), "is partially out of bounds. Returning", BigNumber.from(dumpLength).sub(requestedOffset).toString(), "bytes:", result);
                             else
-                                console.debug("Slot", key, "was fetched from dump file:", result);
+                                console.debug("Slot", slotBN.toString(), "was fetched from dump file:", result);
                         }
 
-                        slotMap.set(key, result);
+                        storage.setStorageCacheAt(ix, result);
                         return result;
                     }
+
                     outputObject = await this.read(layout, getSlot);
                 }
 
@@ -157,22 +158,9 @@ export default class ReadCommand extends SimulatorCommand {
             else {
                 console.debug('Processing live blockchain data');
                 await this.createSimulator().do({ block, rpcUrl: model.rpcUrl }, async provider => {
-
-                    const slotMap = new Map<string, string>();
-                    const getSlot = async ix => {
-                        const bnix = BigNumber.from(ix);
-                        const key = bnix.toString();
-
-                        if (slotMap.has(key))
-                            return slotMap.get(key);
-
-                        if (this.input.verbose) process.stdout.write(chalk.dim("Reading slot " + (key) + "..."));
-                        const result = await provider.getStorageAt(address, ix);
-                        if (this.input.verbose)  process.stdout.write(chalk.dim(result + "\n"));
-                        slotMap.set(key, result);
-                        return result;
-                    }
-
+                    const storage = new ContractStorage(provider, address);
+                    storage.output = this.output;
+                    const getSlot = async ix => await storage.getStorageAt(ix)
                     outputObject = await this.read(layout, getSlot);
                 });
             }
