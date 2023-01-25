@@ -26,11 +26,16 @@ export default class LayoutCommand extends CompilerCommand {
             return exit || 0;
 
 
-        let fromStdin: boolean = false;
+        let fromStdin: boolean = false, contractName: string;
 
         for(let i = 0; i < args.length; i++) {
             const arg = args[i];
             switch (arg) {
+                case "-cn":
+                case "--contract":
+                    contractName = args[++i];
+                    break;
+
                 case "-i":
                 case "--stdin":
                     fromStdin = true;
@@ -80,11 +85,20 @@ export default class LayoutCommand extends CompilerCommand {
 
                 for (const artifact of Object.keys(artifacts)) {
                     const storage = artifacts[artifact]?.storageLayout?.storage;
+                    const types = artifacts[artifact]?.storageLayout?.types;
+
                     if (!storage || !storage.length)
                         continue;
 
-                    result[artifact] = storage.map(x => ({ slot: x.slot, offset: x.offset, name: x.label, type: x.type }));
+                    result[artifact] = storage.map(x => ({ slot: x.slot, offset: x.offset, name: x.label, type: types[x.type] }));
                 }
+            }
+
+            if (!!contractName) {
+                result = result[contractName] || [];
+            }
+            else if (Object.values(result).length == 1) {
+                result = Object.values(result)[0];
             }
 
             if (!!model.outputFile) {
@@ -101,18 +115,19 @@ export default class LayoutCommand extends CompilerCommand {
 
                 const console = this.output;
 
-                for(const contract in result) {
+                for(const contract in Array.isArray(result) ? {[contractName]:contractName} : result) {
                     console.log('\n' + chalk.bold('Storage layout for contract'), chalk.magenta(contract));
-                    console.log('\n  ---------+----------+--------------------------------+----------------------------------------------------------------')
-                    console.log(  '  Slot     | Offset   | Name                           | Type ')
-                    console.log(  '  ---------+----------+--------------------------------+----------------------------------------------------------------')
+                    console.log('\n  ---------+----------+----------+--------------------------------+----------------------------------------------------------------')
+                    console.log(  '  Slot     | Offset   | Length   | Name                           | Type ')
+                    console.log(  '  ---------+----------+----------+--------------------------------+----------------------------------------------------------------')
 
-                    for (const variable of result[contract]) {
+                    for (const variable of Array.isArray(result) ? result : result[contract]) {
                         const slot = `${variable.slot}`.padEnd(8);
                         const offset = variable.offset.toString().padEnd(8);
+                        const length = variable.type.numberOfBytes.toString().padEnd(8);
                         const name = variable.name.padEnd(30);
                         const type = variable.type;
-                        console.log(`  ${chalk.yellow(slot)} | ${chalk.yellow(offset)} | ${chalk.bold(name)} | ${chalk.dim(type)}`)
+                        console.log(`  ${chalk.yellow(slot)} | ${chalk.yellow(offset)} | ${chalk.yellow(length)} | ${chalk.bold(name)} | ${chalk.dim(type.label)}`)
                     }
                 }
 
@@ -135,6 +150,13 @@ export default class LayoutCommand extends CompilerCommand {
 
         commonHelp(console);
         solCompilerHelp(console);
+
+        console.log("  --stdin / -i           If set, the input JSON or source code is read from STDIN.");
+        console.log("  --contract / -cn       Sets the name of the contract to get the layout for. This is");
+        console.log("                         useful if the source code contains multiple contracts. If not");
+        console.log("                         set and multiple contracts are found, a map of layouts for all");
+        console.log("                         contracts is returned.")
+
 
         console.log("");
         await solCompilerVersions(console);
