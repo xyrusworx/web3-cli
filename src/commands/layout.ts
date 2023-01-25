@@ -90,7 +90,18 @@ export default class LayoutCommand extends CompilerCommand {
                     if (!storage || !storage.length)
                         continue;
 
-                    result[artifact] = storage.map(x => ({ slot: x.slot, offset: x.offset, name: x.label, type: types[x.type] }));
+                    const resolveType = (t) => {
+                        const result = types[t];
+                        if (!!result?.base) result.base = resolveType(result.base);
+                        if (!!result?.key) result.key = resolveType(result.key);
+                        if (!!result?.value) result.value = resolveType(result.value);
+                        if (!!result?.members) {
+                            result.members = result.members.map(x => ({ slot: x.slot, offset: x.offset, name: x.label, type: resolveType(x.type) }))
+                        }
+                        return result;
+                    }
+
+                    result[artifact] = storage.map(x => ({ slot: x.slot, offset: x.offset, name: x.label, type: resolveType(x.type) }));
                 }
             }
 
