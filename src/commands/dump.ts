@@ -8,6 +8,7 @@ import {
 } from "../shared/simulator";
 import {commonHelp, parseArguments} from "../shared/common";
 import fs from "fs";
+import chalk from "chalk";
 
 // noinspection JSUnusedGlobalSymbols
 export default class DumpCommand extends SimulatorCommand {
@@ -79,9 +80,9 @@ export default class DumpCommand extends SimulatorCommand {
         await simulator.do({block: block, rpcUrl: model.rpcUrl }, async provider => {
 
             const getSlot = async index => {
-                if (this.input.verbose) process.stdout.write("Reading slot " + (index) + "...");
+                if (this.input.verbose) process.stdout.write(chalk.dim("Reading slot " + (index) + "..."));
                 const result = await provider.getStorageAt(address, index);
-                if (this.input.verbose)  process.stdout.write(result + "\n");
+                if (this.input.verbose) process.stdout.write(chalk.dim(result + "\n"));
                 return result;
             }
 
@@ -126,11 +127,6 @@ export default class DumpCommand extends SimulatorCommand {
         const buffer = new Uint8Array(data.length);
         data.forEach((x,i) => buffer[i] = x);
 
-        if (!!model.outputFile) {
-            fs.writeFileSync(model.outputFile, buffer);
-            console.log("Structured output written to:", model.outputFile);
-        }
-
         if (this.input.quiet) {
             process.stdout.write(buffer, "utf-8");
         }
@@ -142,6 +138,13 @@ export default class DumpCommand extends SimulatorCommand {
             for (let i = 0; i < hex.length; i++) {
                 console.log(hex[i] + "| " + raw[i]);
             }
+        }
+
+        console.log("");
+
+        if (!!model.outputFile) {
+            fs.writeFileSync(model.outputFile, buffer);
+            console.log("Binary dump written to:", model.outputFile);
         }
 
         return 0;
