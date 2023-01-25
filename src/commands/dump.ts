@@ -79,16 +79,9 @@ export default class DumpCommand extends SimulatorCommand {
         await simulator.do({block: block, rpcUrl: model.rpcUrl }, async provider => {
 
             const getSlot = async index => {
-                if (this.input.verbose) {
-                    process.stdout.write("Reading slot " + (index) + "...");
-                }
-
+                if (this.input.verbose) process.stdout.write("Reading slot " + (index) + "...");
                 const result = await provider.getStorageAt(address, index);
-
-                if (this.input.verbose) {
-                    process.stdout.write(result + "\n");
-                }
-
+                if (this.input.verbose)  process.stdout.write(result + "\n");
                 return result;
             }
 
@@ -157,7 +150,7 @@ export default class DumpCommand extends SimulatorCommand {
     private usage() {
         const console = this.output;
 
-        console.log("Usage: web3 dump [options] <contract address>");
+        console.log("Usage: web3 dump [options] <contract-address>");
         console.log("Available options:");
 
         commonHelp(console);
