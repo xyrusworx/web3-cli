@@ -25,13 +25,19 @@ behavior.
 
 ### Supported commands
 
-| Command    | Description                                                                                                                                                                                                                                       |
-|------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `call`     | Executes `eth_call` using given call data to a given contract address.                                                                                                                                                                            |
-| `simulate` | Sends a simulated transaction to a given contract address. The transaction is executed on an ephemeral fork of the chain, so no real transaction is sent. This also enables sending transactions as any address.                                  |
-| `replay`   | Similar to `simulate`, except that the parameters of the transaction including the block are derived from a given transaction hash, allowing to replay a past (real) transaction and obtain diagnostic information.                               |
-| `encode`   | Encodes a list of parameters using a given function signature, to obtain valid calldata, usable in `call` and `simulate`. The output of this command can be piped to the aforementioned commands, if the `-q ` option was passed.                 |
-| `decode`   | Decodes arbitrary hex data using a comma-separated list of Solidity data types (such as `uint256`, `address`, ...). If `call` was invoked with the `-q` option, its output can be piped to this command, which needs to receive the `-i` option. |
+| Command    | Description                                                                                                                                                                                                                                                                                                                                     |
+|------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `call`     | Executes `eth_call` using given call data to a given contract address.                                                                                                                                                                                                                                                                          |
+| `simulate` | Sends a simulated transaction to a given contract address. The transaction is executed on an ephemeral fork of the chain, so no real transaction is sent. This also enables sending transactions as any address.                                                                                                                                |
+| `replay`   | Similar to `simulate`, except that the parameters of the transaction including the block are derived from a given transaction hash, allowing to replay a past (real) transaction and obtain diagnostic information.                                                                                                                             |
+| `encode`   | Encodes a list of parameters using a given function signature, to obtain valid calldata, usable in `call` and `simulate`. The output of this command can be piped to the aforementioned commands, if the `-q ` option was passed.                                                                                                               |
+| `decode`   | Decodes arbitrary hex data using a comma-separated list of Solidity data types (such as `uint256`, `address`, ...). If `call` was invoked with the `-q` option, its output can be piped to this command, which needs to receive the `-i` option.                                                                                                |
+| `dump`     | Fetches the contents of the contract storage at a given address (and optionally a slot index) and writes it to the console and/or a binary output file. If no slot index is given, the contract storage is scanned until a completely empty slot is encountered.                                                                                |
+| `layout`   | Compiles a standard Solidity input JSON file or Solidity source code and extracts a structured description of the contract variable storage layout. The structured output is provided as JSON and can be sent to a file or the standard output. The input JSON can be provided as a parameter or be piped to the command using the `-i` option. |
+| `read`     | Offers an easy way to read the state of a smart contract, either from a dump file (created with the `dump` command) or directly from the blockchain. It is required to provide a storage layout file (created using the `layout` command). The layout can also be piped into this command.                                                      |
+
+> Hint: in several commands, standard Solidity input JSON is processed. You can generate this from [Hardhat](https://hardhat.org) 
+> using the [@xyrusworx/hardhat-solidity-json](https://github.com/xyrusworx/hardhat-solidity-json) package.
 
 ### Global options
 
@@ -93,6 +99,35 @@ web3 decode -i uint256
 You can pipe the output of `call` to `decode` to extract readable / processable results instead of a
 raw hex string. The last parameter is a comma-separated list of data types, which are passed to the 
 decoder. This is arbitrary, meaning you can decode any hex data interpreting them as any Solidity type.
+
+### Example 4: Dump the contract storage of a smart contract into a binary file
+
+For the value of `ADDRESS`, see the above example.
+
+```bash
+web3 -q dump --start 0 --count 20 -i $ADDRESS -o storage.bin
+```
+This will fetch 20 slots starting from slot #0 from the provided smart contract address and store it into
+`storage.bin`. The data is padded to 32 bytes due to the way EVM storages work.
+
+### Example 5: Create a storage layout map and use it to decode a storage dump
+
+For the value of `ADDRESS`, see the above example.
+
+```bash
+cat "contract.sol" | \ 
+web3 -q layout -i | \
+web3 read -i --dump storage.bin $ADDRESS
+```
+
+The smart contract source code in `contract.sol` will be used to create a storage layout map, which is
+a JSON file. This is piped into the `read` command, which then uses the binary storage dump in `storage.bin`
+to decode the smart contract data.
+
+> **WARNING**: The dump is assumed to start with slot #0. If you created a dump with a different starting slot
+> index, the decoding will lead to unexpected and most certainly wrong results.
+
+You can pass the `--offline` parameter, to prevent the program from fetching missing slots from the blockchain.
 
 ## How to build
 
